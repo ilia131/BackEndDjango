@@ -5,8 +5,8 @@ from django.db.models.signals import post_save
 from PIL import Image
 from rest_framework.permissions import IsAuthenticated
 from django.template.defaultfilters import slugify
-
-
+from django.utils import timezone
+from django.db.models import Sum
 import uuid
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
@@ -39,13 +39,15 @@ class UserAccountManager(BaseUserManager):
         user.save(using=self._db)
         
         return user
+    
+    
 
 
 class UserAccount(AbstractBaseUser , PermissionsMixin):
     first_name= models.CharField(max_length=255)
-    last_name= models.CharField(max_length=255)
+    last_name= models.CharField(max_length=255, null=True)
     artistname= models.CharField(max_length=255 , unique=True , blank=True , null=True)
-    email = models.EmailField( unique=True , max_length=255)
+    email = models.EmailField(unique=True , max_length=255)
     bio = models.TextField(blank=True)
     profile_pic = models.ImageField(
         upload_to='images/',
@@ -59,16 +61,16 @@ class UserAccount(AbstractBaseUser , PermissionsMixin):
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name' ]
+    REQUIRED_FIELDS = ['first_name', 'artistname' ]
     
     def get_image(self):
         if self.profile_pic:
-            return 'http://127.0.0.1:8000/' + self.profile_pic.url
+            return 'https://vanguardmusicss.liara.run/' + self.profile_pic.url
         return ''
     
     def get_background(self):
          if self.background:
-            return 'http://127.0.0.1:8000/' + self.background.url
+            return 'https://vanguardmusicss.liara.run/' + self.background.url
          return ''
     
    
@@ -76,8 +78,16 @@ class UserAccount(AbstractBaseUser , PermissionsMixin):
         return self.email
 
 
-class Profile(models.Model):
+    def views_count(self):
+        
+        return View1.objects.filter(views_count=self.pk)
     
+    
+    
+    def follow_count(self):
+        return Follow.objects.filter(follow_count=self.pk)
+
+class Profile(models.Model):
     account = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='acc', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='images/' )
     title = models.CharField(max_length=200, null=True, blank=True)
@@ -95,7 +105,7 @@ class Profile(models.Model):
     
     def get_image(self):
         if self.image:
-            return 'http://127.0.0.1:8000/' + self.image.url
+            return 'https://vanguardmusicss.liara.run/' + self.image.url
         return ''
     
     def get_absolute_url(self):
@@ -105,13 +115,22 @@ class Profile(models.Model):
     
     def tracks(self):
         if self.track:
-            return 'http://127.0.0.1:8000/' + self.track.url
+            return 'https://vanguardmusicss.liara.run/' + self.track.url
         return ''
         
     def comments(self):
         ''' Get all comments '''
         return Comment.objects.filter(post__id=self.pk)
  
+    def postview(self):
+        
+        return View1.objects.filter(postview__id=self.pk)
+    
+    def like(self):
+        
+        return Like.objects.filter(postlike__id=self.pk)
+    
+  
  
 class Comment(models.Model):
     content = models.CharField(max_length=200, blank=True)
@@ -121,7 +140,8 @@ class Comment(models.Model):
     created = models.DateTimeField(auto_now_add=True) 
     slug = models.SlugField()
     
-     
+    def get_image(self):
+        return self.author.get_image()
   
     
     def __str__(self):
@@ -138,4 +158,39 @@ class Comment(models.Model):
     
     def get_absolute_url(self):
         return f'/{self.slug}/'
+    
+class Follow(models.Model):
+    authorfollow = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='authorfollow')
+    authorfollow1 = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='authorfollow1')
+    follow_count = models.IntegerField(default=0)    
+    
+    
+    
 
+
+class View1(models.Model):
+        postview = models.ForeignKey(Profile ,on_delete=models.CASCADE, related_name='postview', null=True , blank=True)
+        authorview = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='authorview')
+        views_count = models.IntegerField(default=0)
+        
+        @property
+        def total_views(self):
+            total_views_count = View1.objects.filter(postview=self.postview).aggregate(total_views=Sum('views_count'))
+            total_sum = total_views_count['total_views'] if total_views_count['total_views'] else 0
+            return total_sum
+
+  
+
+class Like(models.Model):
+        postlike = models.ForeignKey(Profile ,on_delete=models.CASCADE, related_name='postlike', null=True , blank=True)
+        authorlike = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='authorlike')
+        like_count = models.IntegerField(default=0)
+        
+        @property
+        def total_like(self):
+            total_like_count = Like.objects.filter(postlike=self.postlike).aggregate(total_like=Sum('like_count'))
+            total_sum = total_like_count['total_like'] if total_like_count['total_like'] else 0
+            return total_sum
+        
+        def __str__(self):
+         return f" {self.postlike} by {self.authorlike.artistname}" 

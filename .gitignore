@@ -1,3 +1,5 @@
 .venv
 /db.sqlite
+ debug.log
+media/
 

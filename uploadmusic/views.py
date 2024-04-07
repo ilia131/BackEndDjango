@@ -9,15 +9,21 @@ from rest_framework import generics , mixins , viewsets
 # from rest_framework.filters import SearchFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import UploadmusicSerializer
-from .models import Uploadmusic 
+from .serializers import UploadmusicSerializer , VideoSerializer
+from .models import Uploadmusic , Video
 from django.http import Http404 , HttpResponse
 from django.core.mail import send_mail
 from rest_framework.permissions import AllowAny
-from userartist.models import Profile , UserAccount , Comment
+from userartist.models import Profile , UserAccount , Comment , Like , View1
 from userartist.serializers import (ProfileSerializer ,
-UserAccountSerializer , CommentSerializer , ProfileSerializer2)
+UserAccountSerializer , CommentSerializer , ProfileSerializer2 , 
+CommentSerializer2 , ProfileSerializer1 , ProfileSerializer8 ,
+ProfileSerializer100 , LikeSerilizer10 , LikeSerilizer,
+LikeSerilizer20, ProfileSerializer12 , ProfileSerializer101 , ProfileSerializer103
+)
 from django.shortcuts import get_object_or_404
+from django.db.models import Sum
+
 # def send_email(request):
 #     subject = 'Django'
 #     message = 'From Django Hello'
@@ -47,18 +53,44 @@ from django.shortcuts import get_object_or_404
 
 
 class PostView(APIView):
+       permission_classes = [AllowAny]
        def get(self, request):
+         queryset = Profile.objects.annotate(total_views=Sum('postview__views_count')).order_by('-total_views')
+         serializer = ProfileSerializer8(queryset, many=True)
+         return Response(serializer.data)
+
+
+
+
+
+
+
+
+
+
+
+class PostLike(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        queryset = Profile.objects.annotate(total_like=Sum('postlike__like_count')).order_by('-total_like')
+        serializer = ProfileSerializer100(queryset, many=True)
+        return Response(serializer.data)
+    
+class AllMusicView(APIView):
+    permission_classess = [AllowAny]
+    def get(self , request):
         queryset = Profile.objects.all()
-        serializer = ProfileSerializer2(queryset, many=True)
-        
+        serializer = ProfileSerializer1(queryset , many=True)
         return Response(serializer.data)
 
-       def post(self, request):
-         serializer = ProfileSerializer2(data=request.data)
-         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-         return Response(serializer.errors, status=400)
+
+class VideoView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        queryset = Video.objects.all()
+        serializer = VideoSerializer(queryset, many=True)
+        
+        return Response(serializer.data)
 
 
 
@@ -70,12 +102,6 @@ class UploadmusicView(APIView):
         
         return Response(serializer.data)
 
-    def post(self, request):
-        serializer = UploadmusicSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
     
     
 class UploadmusicViewT(APIView):
@@ -154,14 +180,14 @@ class UploadmusicSearchViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
      permission_classes = [AllowAny]
 
      queryset = Profile.objects.all()
-     serializer_class = ProfileSerializer2
+     serializer_class = ProfileSerializer8
      
      def get_queryset(self):
          text = self.request.query_params.get('query', None)
          if not text: 
              return self.queryset
          
-         return self.queryset.filter(Q(title__icontains=text) | Q(description__icontains=text))
+         return self.queryset.filter(Q(title__icontains=text) | Q(description__icontains=text) | Q(account__artistname__icontains=text))
      
      
 
@@ -222,10 +248,10 @@ class ShowPostUser(viewsets.GenericViewSet, mixins.ListModelMixin):
         if self.action == 'list':
             return ProfileSerializer
         elif self.action == 'create_comment':
-            return CommentSerializer
+            return CommentSerializer2
         else:
             return super().get_serializer_class()
-    
+   
     
     
     
@@ -244,9 +270,9 @@ class ShowPostUser(viewsets.GenericViewSet, mixins.ListModelMixin):
     def list(self, request, *args, **kwargs):
         profiles, user_accounts , comment = self.get_queryset()
     
-        profile_serializer = ProfileSerializer(profiles, many=True)
+        profile_serializer = ProfileSerializer103(profiles, many=True)
         user_account_serializer = UserAccountSerializer(user_accounts, many=True)
-        comment_serializer = CommentSerializer(comment, many=True)
+        comment_serializer = CommentSerializer2(comment, many=True)
         return Response({
             'profiles': profile_serializer.data,
             'user_accounts': user_account_serializer.data,

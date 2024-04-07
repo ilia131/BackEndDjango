@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Uploadmusic 
+from .models import Uploadmusic , Video
 
 
 
@@ -33,3 +33,15 @@ class UploadmusicSerializer(serializers.ModelSerializer):
         )
         
 
+class VideoSerializer(serializers.ModelSerializer):
+    video = serializers.FileField(use_url=True)
+    image = serializers.ImageField(use_url= True)
+
+    class Meta:
+        model = Video
+        fields = (
+            "video",
+            'videos',
+            'image',
+            'images', 
+        )

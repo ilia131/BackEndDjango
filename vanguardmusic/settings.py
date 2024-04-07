@@ -35,8 +35,9 @@ SECRET_KEY = 'django-insecure-yt$4f=@yqw99!j408yt%pz#1u=u1va-$_2b^p0*kdlz$p9o#s=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+# ALLOWED_HOSTS = getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
+ALLOWED_HOSTS=['127.0.0.1', 'localhost', 'vanguardmusics.ir' , "www.vanguardmusics.ir"]
 
 # Application definition
 
@@ -53,7 +54,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'axios',
     'django_filters',
+    'social_django',
     'userartist',
+
 ]
 
 MIDDLEWARE = [
@@ -66,20 +69,21 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 CORS_ORIGIN_ALLOW_ALL = True
 
 
 REST_FRAMEWORK = {
        'DEFAULT_AUTHENTICATION_CLASSES':[
-       'userartist.authentication.CustomJWTAuthentication',
-     ],
-        #  'DEFAULT_PERMISSION_CLASSES':[
-        #       'rest_framework.permissions.AllowAny',
-        # ],
+        'userartist.authentication.CustomJWTAuthentication',
+        ],
+            #   'DEFAULT_PERMISSION_CLASSES':[
+            #    'rest_framework.permissions.AllowAny',
+            #   ],
 
-      'DEFAULT_PERMISSION_CLASSES':[
-            'rest_framework.permissions.IsAuthenticated',
-        ]
+     'DEFAULT_PERMISSION_CLASSES':[
+          'rest_framework.permissions.IsAuthenticated',
+         ]
 }
 
 
@@ -117,7 +121,7 @@ WSGI_APPLICATION = 'vanguardmusic.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
@@ -164,7 +168,18 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_URL = '/media/'
-DOMAIN = 'localhost:3000'
+DOMAIN = 'vanguardmusics.ir'
+
+
+
+
+
+
+
+
+
+
+
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': 'password-reset/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
@@ -172,18 +187,30 @@ DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'TOKEN_MODEL': None,
-    # 'SERIALIZERS':{'user_create': 'djoser.serializers.UserCreateSerializer'}
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': getenv('REDIRECT_URLS').split(',')
 }
+
+
+
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name' , 'artistname']
+
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ORIGIN_ALLOW_ALL = True
 
 AUTH_COOKIE = 'access'
-AUTH_COOKIE_ACCESS_MAX_AGE =  timedelta(minutes=5)
-AUTH_COOKIE_REFRESH_MAX_AGE = timedelta(days=1)
-AUTH_COOKIE_SECURE = 'False'
-AUTH_COOKIE_HTTP_ONLY = False
+AUTH_COOKIE_ACCESS_MAX_AGE =  60 * 360
+AUTH_COOKIE_REFRESH_MAX_AGE = 60 * 60 * 24
+AUTH_COOKIE_SECURE = True
+AUTH_COOKIE_HTTP_ONLY = 'False'
 AUTH_COOKIE_PATH = '/'
-AUTH_COOKIE_SAMESITE = 'None'
+AUTH_COOKIE_SAMESITE = None
+SESSION_COOKIE_SAMESITE = '.vanguardmusics.ir'
+
+
+
+
 
 #Email settings
 
@@ -196,18 +223,16 @@ EMAIL_USE_TLS=True
 
 DEFAULT_FROM_EMAIL='info@vanguardmusics.ir'
 
+CORS_ALLOWED_ORIGINS = [
+         "https://vanguardmusics.ir",
+     ]
 
 
 
 
 
-CORS_ALLOWED_ORIGINS = getenv(
-     'CORS_ALLOWED_ORIGINS', 
-     'http://localhost:3000,http://127.0.0.1:3000'
-     ).split(',')
 
 
-CORS_ALLOW_CREDENTIALS = True
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

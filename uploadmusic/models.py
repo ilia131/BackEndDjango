@@ -39,14 +39,26 @@ class Uploadmusic(models.Model):
     
     def get_image(self):
         if self.image:
-            return 'http://127.0.0.1:8000/' + self.image.url
+            return 'https://vanguardmusicss.liara.run/' + self.image.url
         return ''
     
     def tracks(self):
         if self.track:
-            return 'http://127.0.0.1:8000/' + self.track.url
+            return 'https://vanguardmusicss.liara.run/' + self.track.url
         return ''
     
 
    
    
+class Video(models.Model):
+    video = models.FileField(upload_to='video/')
+    image = models.ImageField(upload_to='image/')
+    def videos(self):
+        if self.video:
+            return 'https://vanguardmusicss.liara.run/' + self.video.url
+        return ''
+    
+    def images(self):
+        if self.image:
+             return  'https://vanguardmusicss.liara.run/' + self.video.url  
+        return ''

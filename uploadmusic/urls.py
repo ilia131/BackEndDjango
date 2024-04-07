@@ -22,11 +22,16 @@ router.register('songsket', views.UploadmusicsSongKey, basename='key-musics')
 router.register('slug', views.PostSlug, basename='slug-music')
 
 router.register('songartist', views.UploadmusicArtists, basename='song-artist')
+
+
 urlpatterns = [
     # path('', UploadmusicView.as_view()),
     path('', PostView.as_view()),
-    path('songt',  UploadmusicViewT.as_view()),
-    path('songs', UploadmusicView.as_view()),
+    path('alllike/', views.PostLike.as_view()),
+    path('musics/', views.AllMusicView.as_view()),
+    path('songt/',  UploadmusicViewT.as_view()),
+    path('songs/', UploadmusicView.as_view()),
+    path('video/', views.VideoView.as_view()),
     # path('send-email/', views.send_email , name='send_email'),
     path('', include(router.urls))
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
